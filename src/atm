@@ -49,7 +49,7 @@ def findDataType(data):
 				datatype = "float"
 			except:
 				if data == "true" or data == "false":
-					datatype = "boolean"
+					datatype = "bool"
 				else:
 					datatype = "var"
 	else:
@@ -58,6 +58,8 @@ def findDataType(data):
 global variables
 variables = []	
 def compile(code,of, ln):
+	def cerror(problem):
+		error("Error at line " +str(ln + 1) +": " +str(code) +"\n " +str(problem))
 	if code[-1] != ";" and not code[:2] == "//":
 		error("Error at line " +str(ln + 1) +": " +str(code) +"\nCode does not end with ;")
 	if len(code) == 0:
@@ -115,20 +117,32 @@ def compile(code,of, ln):
 		if command == "print":
 			for arg in args:
 				datatype = findDataType(arg)
-				if datatype == "str":
+				if datatype == "str" or datatype == "int" or datatype == "float" or datatype == "bool":
 					tmpreturn += str("ps" +arg[1:-1].replace("!","\!") +"!")
+				elif datatype == "var":
+					tmpreturn += str("pv" +arg +"!")
+				else:
+					cerror("Unsupported data type in print: " +datatype)
 		elif command == "var":
 			if len(args) == 1:
-				tmpreturn += "vc" +str(args[0]) +"!"
+				datatype = findDataType(args[0])
+				if datatype == "var":
+					tmpreturn += "vc" +str(args[0]) +"!"
+				else:
+					cerror("Unsupported datatype in var: " +datatype +"\nUse var datatype.")
 			else:
-				error(str(code) +"\nArgument count for var must be 1.")
+				cerror("Amount of arguments for var must be 1.")
 		elif command == "set":
 			if len(args) == 2:
-				tmpreturn += "vs" +str(args[0]) +"!" +str(args[1]) +"!"
+				datatype = findDataType(args[0])
+				if datatype = "var":
+					tmpreturn += "vs" +str(args[0]) +"!" +str(args[1]) +"!"
+				else:
+					cerror("Unsupported datatype in set: " +datatype +"\nUse var datatype to put the name of the variable you want to set")
 			else:
-				error(str(code) +"\nArgument count for set must be 2.")
+				cerror("Amount of arguments for set must be 2.")
 		else:
-			error(str(code) +"\nUnrecognised command: " +str(command))
+			cerror("Unrecognised command: " +str(command))
 	else:
 		error("Unsupported output format.")
 	debug("Code compiled as: " +str(tmpreturn))
