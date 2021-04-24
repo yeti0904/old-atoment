@@ -27,6 +27,7 @@ def arg(short,long):
 def error(problem):
 	print(Fore.RED +"[E] " +Style.RESET_ALL +str(problem))
 	exit()
+
 	
 def ok(string,important):
 	if reduce == True and important == True or reduce == False:
@@ -54,8 +55,11 @@ def findDataType(data):
 	else:
 		pass
 	return datatype
+global variables
 variables = []	
-def compile(code,of):
+def compile(code,of, ln):
+	if code[-1] != ";" and not code[:2] == "//":
+		error("Error at line " +str(ln + 1) +": " +str(code) +"\nCode does not end with ;")
 	if len(code) == 0:
 		return ""
 	tmpreturn = ""
@@ -103,18 +107,28 @@ def compile(code,of):
 	else:
 		debug("None found.")	
 	count = 0
-	debug("Command: '" +str(command) +"'")
-	debug("OF: " +str(of))
 	# Compile to Lithium
 	if of == "lithium":
-		debug("is lithium")
+		if code[:2] == "//":
+			debug("Ignored comment")
+			return ""
 		if command == "print":
-			debug("is print")
 			for arg in args:
 				datatype = findDataType(arg)
 				if datatype == "str":
 					tmpreturn += str("ps" +arg[1:-1].replace("!","\!") +"!")
-				
+		elif command == "var":
+			if len(args) == 1:
+				tmpreturn += "vc" +str(args[0]) +"!"
+			else:
+				error(str(code) +"\nArgument count for var must be 1.")
+		elif command == "set":
+			if len(args) == 2:
+				tmpreturn += "vs" +str(args[0]) +"!" +str(args[1]) +"!"
+			else:
+				error(str(code) +"\nArgument count for set must be 2.")
+		else:
+			error(str(code) +"\nUnrecognised command: " +str(command))
 	else:
 		error("Unsupported output format.")
 	debug("Code compiled as: " +str(tmpreturn))
@@ -156,7 +170,7 @@ elif len(sys.argv) >= 3:
 	for line in inputFile:
 		if arg("-d","--debug"):
 			debug("Working on line " +str(linec) +": " +str(line))
-		out += compile(line,oc)
+		out += compile(line,oc,linec)
 		ok(str("Compiled line " +str(linec + 1) +"."),False)
 		linec += 1
 	ok("Compiled everything. Writing to the file",True)
