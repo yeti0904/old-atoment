@@ -58,6 +58,7 @@ def findDataType(data):
 global variables
 variables = []	
 def compile(code,of, ln):
+	global variables
 	def cerror(problem):
 		error("Error at line " +str(ln + 1) +": " +str(code) +"\n " +str(problem))
 	if code[-1] != ";" and not code[:2] == "//":
@@ -123,24 +124,22 @@ def compile(code,of, ln):
 					tmpreturn += str("pv" +arg +"!")
 				else:
 					cerror("Unsupported data type in print: " +datatype)
-		elif command == "var":
-			if len(args) == 1:
-				datatype = findDataType(args[0])
-				if datatype == "var":
-					tmpreturn += "vc" +str(args[0]) +"!"
-				else:
-					cerror("Unsupported datatype in var: " +datatype +"\nUse var datatype.")
-			else:
-				cerror("Amount of arguments for var must be 1.")
 		elif command == "set":
 			if len(args) == 2:
 				datatype = findDataType(args[0])
 				if datatype == "var":
+					if not str(args[0]) in variables:
+						tmpreturn += "vc" +str(args[0]) +"!"
 					tmpreturn += "vs" +str(args[0]) +"!" +str(args[1]) +"!"
 				else:
 					cerror("Unsupported datatype in set: " +datatype +"\nUse var datatype to put the name of the variable you want to set")
 			else:
 				cerror("Amount of arguments for set must be 2.")
+		elif command == "input":
+			if len(args) == 1:
+				tmpreturn += "vi" +str(args[0]) +"!"
+			else:
+				cerror("Amount of arguments for input must be 1.")
 		else:
 			cerror("Unrecognised command: " +str(command))
 	else:
