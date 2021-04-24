@@ -1,0 +1,111 @@
+#!/usr/bin/env python3
+import colorama
+import sys
+import os
+from colorama import init
+from colorama import Fore, Back, Style
+init()
+print(sys.argv)
+# Info
+if not "./" in sys.argv[0]:
+	print(Fore.YELLOW +"[INFO] " +Style.RESET_ALL +"it is easier to use ./compile2.py (arg) to run (Bash only)")
+# Config
+oreduce = False
+
+# Setup compiler
+print("Atoment 1.0")
+'''
+fileIn = str(input("Type an Atoment file name to use as input> "))
+'''
+if len(sys.argv) == 2:
+	fileIn = sys.argv[1]
+else:
+	print(Fore.RED +"[E] " +Style.RESET_ALL +"No file selected! " +Fore.YELLOW +"[./compile2.py file.atoment]")
+	exit()
+if sys.argv[2] == "-o" or sys.argv[2] == "--output":
+	if len(sys.argv) == 4:
+		outfile = sys.argv[3]
+	else:
+		print(Fore.RED +"[E] " +Style.RESET_ALL +"Output name not included with --output argument")
+if os.path.isfile(fileIn):
+	# if the file exists, continue
+	pass
+else:
+	print(Fore.RED +"[E]" +Style.RESET_ALL +" File not found! exiting..")
+	exit()
+print(Fore.GREEN +"[OK]" +Style.RESET_ALL +" Found file\nReading file..")
+with open(fileIn) as f:
+	incontent = f.read().splitlines()
+	# read file into a list
+print(Fore.GREEN +"[OK] " +Style.RESET_ALL +" File finished reading.. Now compiling will begin.")
+
+# Compiler
+limc = ""
+linep = 0
+variables = []
+for line in incontent:
+	tree = []
+	if oreduce == False:
+		print("Compiling line " +str(linep + 1))
+	lncontent = incontent[linep]
+	if lncontent[:2] == "//":
+		if oreduce == False:
+			print(Fore.YELLOW +"Skipped comment at " +srt(linep + 1))
+	else:
+		charp = 0
+		findcommand = False
+		command = ""
+		commandend = 0
+		for char in incontent[linep]:
+			temp = incontent[linep]
+			if char == ":":
+				findcommand = True
+				# found the end of the command
+				commandend = charp
+			else:
+				if findcommand == False:
+					command += char
+			charp += 1
+		if findcommand == True:
+			if oreduce == False:
+				print(Fore.GREEN +"[OK] " +Style.RESET_ALL +"Got command " +command)
+		else:
+			# if a command isn't finished, such as "print" instead of "print:"
+			print(Fore.RED +"[E]" +Style.RESET_ALL +" at line " +str(linep + 1) +"\n colon not written after command")
+			exit()
+		tree.append(command)
+		data = lncontent[int(commandend + 1):]
+		datal = data.replace(",","\s").split(",")
+		# bug fix for not being able to put a comma in strings
+		linep2 = 0
+		for line in datal:
+			datal[linep2] = str(datal[linep2]).replace("\s",",")
+		# Compile commands to LithiumPC Machine Code
+		print(datal)
+		if command == "print":
+			for inputs in datal:
+				print(inputs)
+				if inputs[0] == '"' and inputs[-1] == '"':
+					limc += "ps" +str(inputs[1:-2]) +"!"
+				else:
+					if inputs in variables:
+						limc += "pv" +inputs +"!"
+					else:
+						print(Fore.RED +"[E] " +Style.RESET_ALL +"(Ln " +str(linep) +") Variable \"" +str(inputs) +" does not exist!")
+						exit()
+				
+	linep += 1
+# Finish off by saving LithiumPC code to file.
+print(Fore.GREEN +"[OK] " +Style.RESET_ALL +"Finished compiling. Type the output file name you want. (use file extension lipc)")
+# (Deprecated) outfile = str(input("> ")).replace(" ","")
+if outfile[-1:-5] != ".lipc":
+	outfile += ".lipc"
+if os.path.isdir("output"):
+	pass
+else:
+	print(Fore.YELLOW +"[INFO] " +Style.RESET_ALL +"Output directory does not exist. Creating..")
+	os.system("mkdir output")
+	print(Fore.YELLOW +"[INFO] " +Style.RESET_ALL +"Done")
+print("Writing LithiumPC code to file..")
+os.system("echo " +limc +" > " +outfile)
+print(Fore.GREEN +"[OK] " +Style.RESET_ALL +"LithiumPC code written to file!")
