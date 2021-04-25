@@ -195,6 +195,7 @@ elif len(sys.argv) >= 3:
 		ok("Set to compile to LithiumPC",False)
 		# OC: Output Code
 	elif arg("-m","--micromium"):
+		print(Fore.YELLOW +"NOTE: Micromium Legacy is not supported yet (temp msg)")
 		ok("Set to compile to Micromium Legacy",False)
 		oc = "micromium"
 	elif arg("-s","--smc"):
