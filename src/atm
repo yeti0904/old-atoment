@@ -39,6 +39,9 @@ def debug(string):
 def findDataType(data):
 	if data[0] and data[-1] == '"':
 		datatype = "str"
+	elif data == "\ "[0] +"n":
+		datatype = "NewLn"
+		# Only for SMC Computer, this datatype won't be supported for LithiumPC
 	elif data[0] and data[-1] != '"':
 		try:
 			d = int(data)
@@ -110,11 +113,11 @@ def compile(code,of, ln):
 	else:
 		debug("None found.")	
 	count = 0
+	if code[:2] == "//":
+		debug("Ignored comment")
+		return ""
 	# Compile to Lithium
 	if of == "lithium":
-		if code[:2] == "//":
-			debug("Ignored comment")
-			return ""
 		if command == "print":
 			for arg in args:
 				datatype = findDataType(arg)
@@ -151,6 +154,23 @@ def compile(code,of, ln):
 						cerror("Unsupported datatype for run: " +findDataType(args[1]))
 				else:
 					cerror("Unsupported run type: " +str(args[0]))
+		else:
+			cerror("Unrecognised command: " +str(command))
+	elif of == "smc":
+		if command == "print":
+			for arg in args:
+				if findDataType(arg) == "NewLn":
+					tmpreturn += "E\n0\n"
+				else:
+					tmpreturn += "A\n1\n1\n" +str(arg) +"\n"
+		elif command == "set":
+			if len(args) == 2:
+				if findDataType(args[0]) == "var":
+					tmpreturn += '10\n1\n2\n"' +str(args[0]) +'"\n"' +str(args[1]) +"'\n"
+				else:
+					cerror("Var name must be data type 'var'")
+			else:
+				cerror("Amount of arguments for set must be 2.")
 		else:
 			cerror("Unrecognised command: " +str(command))
 	else:
