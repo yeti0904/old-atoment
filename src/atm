@@ -171,6 +171,13 @@ def compile(code,of, ln):
 					cerror("Var name must be data type 'var'")
 			else:
 				cerror("Amount of arguments for set must be 2.")
+		elif command == "input":
+			if len(args) == 1:
+				tmpreturn += 'B\n1\n2\n""\n"' +args[0] +'"\n'
+			else:
+				cerror("Amount of arguments for input must be 1.")
+		elif command == "clear":
+			tmpreturn += "D\n0\n"
 		else:
 			cerror("Unrecognised command: " +str(command))
 	else:
