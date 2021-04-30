@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 print("MESYETI's Free Atoment Compiler")
+print("0.1.2 pre-release (Preparation Update)")
 print("Copyright (C) 2021	MESYETI")
 def disclaimer():
 	print("This program is free software: you can redistribute it and/or modify")
@@ -28,7 +29,7 @@ def error(problem):
 	print(Fore.RED +"[E] " +Style.RESET_ALL +str(problem))
 	exit()
 
-	
+
 def ok(string,important):
 	if reduce == True and important == True or reduce == False:
 			print(Fore.GREEN +"[OK] " +Style.RESET_ALL +str(string))
@@ -59,7 +60,7 @@ def findDataType(data):
 		pass
 	return datatype
 global variables
-variables = []	
+variables = []
 def compile(code,of, ln):
 	global variables
 	def cerror(problem):
@@ -72,10 +73,10 @@ def compile(code,of, ln):
 	# ints = [0,1,2,3,4,5,6,7,8,9]
 	# floats = [".",0,1,2,3,4,5,6,7,8,9]
 	# ^ unused stuff :P
-	# 
+	#
 	# Code: input Atoment code
 	# of: Output Format
-	# 
+	#
 	# Read command and arguments
 	cmdindex = code.find(":")
 	command = code[:cmdindex]
@@ -111,11 +112,12 @@ def compile(code,of, ln):
 		args.append(argstr)
 		debug("New argument list: " +str(args))
 	else:
-		debug("None found.")	
+		debug("None found.")
 	count = 0
 	if code[:2] == "//":
 		debug("Ignored comment")
 		return ""
+	command = command.lower().replace(" ","")
 	# Compile to Lithium
 	if of == "lithium":
 		if command == "print":
@@ -180,6 +182,15 @@ def compile(code,of, ln):
 			tmpreturn += "D\n0\n"
 		else:
 			cerror("Unrecognised command: " +str(command))
+	elif of == "pascal":
+		if command == "print":
+			for arg in args:
+				if findDataType(arg) == "str":
+					tmpreturn += "	writeln('" +str(arg[1:-1]) +"');\n"
+				else:
+					tmpreturn += "	writeln('" +str(arg) +"');\n"
+		else:
+			cerror("Unrecognised command: " +str(command))
 	else:
 		error("Unsupported output format.")
 	debug("Code compiled as: " +str(tmpreturn))
@@ -208,23 +219,54 @@ elif len(sys.argv) >= 3:
 	elif arg("-s","--smc"):
 		ok("Set to compile to Scratch Machine Code",False)
 		oc = "smc"
+	elif arg("-p","--pascal"):
+		ok("Set to compile to Pascal",False)
+		oc = "pascal" 
 	elif arg("-h","--help"):
 		print(Fore.YELLOW +"Atoment Compiler\n" +Style.RESET_ALL +"Output format:\n-l --lithium Compile to LithiumPC\n-m --micromium Compile to Micromium Legacy\n-s --smc Compile to Scratch Machine Code")
 	else:
 		pass
+	if arg("-a","--autorun"):
+		if oc == "pascal":
+			autorun = True
+			ok("Enabled Auto-Run",False)
+		else:
+			error("Autorun can only be used with Pascal")
+	if arg("-e","--exe"):
+		if oc == "pascal":
+	        	autocompile = True
+	        	ok("Enabled Auto-Compile")
+		else:
+			error("Autocompile can only be used with Pascal.")
 	if oc is None:
 		error("Output format is not defined")
-	ok("Begin compile",True)
+	ok("Ready to compile",True)
 	with open(sys.argv[1]) as f:
-		inputFile = f.read().splitlines()
+		inputFile = f.read()
+	inputCode = []
+	tmpCode = ""
+	for char in inputFile:
+		if char == ";":
+			inputCode.append(tmpCode +";")
+			tmpCode = ""
+		else:
+			tmpCode += char
 	out = ""
+	# Code that goes at the start of the code
+	if oc == "pascal":
+		out += "uses sysutils;\nbegin\n"
+	# Built in variables
+	if oc == "lithium":
+		out += "vc__ver__!vs__ver__!0.1.2!"
 	linec = 0
-	for line in inputFile:
+	for line in inputCode:
 		if arg("-d","--debug"):
 			debug("Working on line " +str(linec) +": " +str(line))
 		out += compile(line,oc,linec)
 		ok(str("Compiled line " +str(linec + 1) +"."),False)
 		linec += 1
+	if oc == "pascal":
+		out += "end."
 	ok("Compiled everything. Writing to the file",True)
 	if not os.path.exists(sys.argv[2]):
 		f = open(sys.argv[2], "x")
@@ -233,7 +275,6 @@ elif len(sys.argv) >= 3:
 	f.write(out)
 	f.close()
 	ok("Written.",True)
-	
+
 else:
 	error("Not enough arguments, run again without arguments to view usage.")
- 
